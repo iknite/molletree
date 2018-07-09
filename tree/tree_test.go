@@ -1,7 +1,6 @@
 package tree
 
 import (
-	"fmt"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -19,4 +18,10 @@ func TestHeight(t *testing.T) {
 	tree.length = 8
 	assert.Equal(t, tree.height(), 4.0)
 
+}
+
+func TestAdd(t *testing.T) {
+	tree := NewTree()
+	tree.Add("event1")
+	assert.Equal(t, storage["0:0"], "event1")
 }

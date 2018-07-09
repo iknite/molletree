@@ -28,12 +28,10 @@ func (t *Tree) height() float64 {
 	return math.Ceil(math.Log2(t.length + 1))
 }
 
-func (t *Tree) Add() *Node {
+func (t *Tree) Add(event string) *Node {
 	// Add a leaf node
-	node := &Node{
-		index:  t.length,
-		height: 0,
-	}
+	node := &Node{index: t.length, height: 0}
+	storage[node.String()] = event
 
 	t.length += 1
 
