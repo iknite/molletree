@@ -1,18 +1,41 @@
 package tree
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
-type Node struct{}
+var storage = make(map[string]string)
+
+type Node struct {
+	index, height float64
+}
 
 // Stringer implementation
 func (n *Node) String() string {
-	return "I'm a node\n"
+	return fmt.Sprintf("%v:%v", n.index, n.height)
 }
 
 type Tree struct {
-	version float64
+	length float64
+}
+
+func NewTree() *Tree {
+	return &Tree{length: 0}
 }
 
 func (t *Tree) height() float64 {
-	return math.Ceil(math.Log2(t.version + 1))
+	return math.Ceil(math.Log2(t.length + 1))
+}
+
+func (t *Tree) Add() *Node {
+	// Add a leaf node
+	node := &Node{
+		index:  t.length,
+		height: 0,
+	}
+
+	t.length += 1
+
+	return node
 }
