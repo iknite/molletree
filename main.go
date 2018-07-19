@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 
-	"github.com/iknite/bygone-tree/tree"
+	"github.com/iknite/bygone-tree/history"
 )
 
 func main() {
-	fmt.Print(new(tree.Node))
+	tree := history.NewTree()
+	commitment := tree.Add("Hello world!")
+	fmt.Println(commitment)
 }

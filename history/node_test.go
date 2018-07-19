@@ -1,0 +1,50 @@
+package history
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/iknite/bygone-tree/hashing"
+	"github.com/iknite/bygone-tree/storage"
+	assert "github.com/stretchr/testify/require"
+)
+
+func TestCommitment(t *testing.T) {
+
+	testCases := []struct {
+		eventDigest []byte
+		commitment  []byte
+	}{
+		{[]byte{0x0}, []byte{0x0}},
+		{[]byte{0x1}, []byte{0x1}},
+		{[]byte{0x2}, []byte{0x3}},
+		{[]byte{0x3}, []byte{0x0}},
+		{[]byte{0x4}, []byte{0x4}},
+		{[]byte{0x5}, []byte{0x1}},
+		{[]byte{0x6}, []byte{0x7}},
+		{[]byte{0x7}, []byte{0x0}},
+		{[]byte{0x8}, []byte{0x8}},
+		{[]byte{0x9}, []byte{0x1}},
+	}
+
+	// Note that we are using fake hashing functions and the index
+	// as the value of the event's digest to make predictable hashes
+	tree := &Tree{version: 0, hasher: &hashing.XorHasher{}}
+
+	for i, c := range testCases {
+
+		// almost like tree.Add except we provide the digest to allow easier
+		// tests.
+		version := uint64(i)
+		node := &Node{index: version, layer: 0, tree: tree}
+		storage.Set(node.String(), c.eventDigest)
+
+		commitment := node.Commitment(version)
+		node.tree.version += 1
+		storage.Print()
+		fmt.Println(">>> ", commitment)
+
+		assert.Equalf(t, c.commitment, commitment, "Incorrect commitment for index %d", i)
+	}
+
+}
