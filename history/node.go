@@ -49,45 +49,42 @@ func (n *Node) Commitment(version uint64) []byte {
 		tree:  n.tree,
 	}
 
-	return rootNode.Hash(version)
+	hash, _ := rootNode.Hash(version)
+	return hash
 }
 
 func (n *Node) isRootNode() bool {
 	return n.index == 0 && n.layer == n.tree.Height()
 }
 
-func (n *Node) Hash(version uint64) []byte {
+func (n *Node) Hash(version uint64) (hash []byte, tainted bool) {
 
 	// if you're trying to get the future, return nil
 	if n.index > version {
-		fmt.Println(": the-future is nil")
-		return nil
+		return
 	}
 
 	id := n.String()
 
 	hash, ok := storage.Get(id)
 	if ok {
-		fmt.Println(": hash is set", hash, n)
-		return hash
+		return
 	}
 
 	leftN := n.Left()
-	leftHash := leftN.Hash(version)
+	leftHash, _ := leftN.Hash(version)
 
 	rightN := n.Right()
-	rightHash := rightN.Hash(version)
+	rightHash, rightTainted := rightN.Hash(version)
 
-	fmt.Println(": salt things up", leftHash, rightHash, n)
 	hash = n.tree.hasher.Cipher(n.Id(), leftHash, rightHash)
 
 	// is storable when the childrens are complete and you're not a rootNode
-	if rightHash != nil && rightN.index < version && !n.isRootNode() {
-
-		fmt.Println(": can touch this", leftHash, rightHash)
-
+	if rightHash != nil && !rightTainted && !n.isRootNode() {
 		storage.Set(id, hash)
+	} else {
+		tainted = true
 	}
 
-	return hash
+	return
 }

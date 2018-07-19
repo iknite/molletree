@@ -1,7 +1,6 @@
 package history
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/iknite/bygone-tree/hashing"
@@ -41,8 +40,6 @@ func TestCommitment(t *testing.T) {
 
 		commitment := node.Commitment(version)
 		node.tree.version += 1
-		storage.Print()
-		fmt.Println(">>> ", commitment)
 
 		assert.Equalf(t, c.commitment, commitment, "Incorrect commitment for index %d", i)
 	}

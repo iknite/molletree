@@ -1,7 +1,5 @@
 package storage
 
-import "fmt"
-
 var std map[string][]byte
 
 func init() {
@@ -19,8 +17,4 @@ func Get(id string) ([]byte, bool) {
 
 func Set(id string, data []byte) {
 	std[id] = data
-}
-
-func Print() {
-	fmt.Println("_", std)
 }

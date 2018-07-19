@@ -1,7 +1,6 @@
 package history
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/iknite/bygone-tree/encoding/encstring"
@@ -22,7 +21,6 @@ func NewTree() *Tree {
 }
 
 func (t *Tree) Height() uint64 {
-	fmt.Println("!", uint64(math.Ceil(math.Log2(float64(t.version)+1))))
 	return uint64(math.Ceil(math.Log2(float64(t.version) + 1)))
 }
 

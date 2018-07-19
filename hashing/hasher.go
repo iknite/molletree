@@ -2,7 +2,6 @@ package hashing
 
 import (
 	"crypto/sha256"
-	"fmt"
 )
 
 // Hasher is the public interface to be used as placeholder for the concrete
@@ -43,8 +42,6 @@ func (s Sha256Hasher) Len() uint64 { return uint64(256) }
 type XorHasher struct{}
 
 func (x XorHasher) Do(data ...[]byte) []byte {
-	fmt.Println("*", data)
-
 	var result byte
 	for _, elem := range data {
 		var sum byte
