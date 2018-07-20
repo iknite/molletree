@@ -42,19 +42,18 @@ func (n *Node) Right() *Node {
 	}
 }
 
-func (n *Node) Commitment(version uint64) []byte {
-	rootNode := &Node{
+func (n *Node) Root() *Node {
+	return &Node{
 		index: 0,
 		layer: n.tree.Height(),
 		tree:  n.tree,
 	}
-
-	hash, _ := rootNode.Hash(version)
-	return hash
 }
 
-func (n *Node) isRootNode() bool {
-	return n.index == 0 && n.layer == n.tree.Height()
+func (n *Node) Commitment() []byte {
+	rootNode := n.Root()
+	hash, _ := rootNode.Hash(n.index)
+	return hash
 }
 
 func (n *Node) Hash(version uint64) (hash []byte, tainted bool) {
