@@ -45,7 +45,7 @@ func (n *Node) Right() *Node {
 func (n *Node) Root() *Node {
 	return &Node{
 		index: 0,
-		layer: n.tree.Height(),
+		layer: treeHeight(n.index),
 		tree:  n.tree,
 	}
 }

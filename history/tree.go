@@ -20,8 +20,8 @@ func NewTree() *Tree {
 	}
 }
 
-func (t *Tree) Height() uint64 {
-	return uint64(math.Ceil(math.Log2(float64(t.version) + 1)))
+func treeHeight(version uint64) uint64 {
+	return uint64(math.Ceil(math.Log2(float64(version) + 1)))
 }
 
 func (t *Tree) Add(event string) []byte {
