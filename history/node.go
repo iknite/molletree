@@ -58,8 +58,8 @@ func (n *Node) Commitment() []byte {
 
 func (n *Node) Hash(version uint64) (hash []byte, tainted bool) {
 
-	// if you're trying to get the future, return nil
 	if n.index > version {
+		// if you're trying to get the future, return nil
 		return
 	}
 
@@ -67,6 +67,7 @@ func (n *Node) Hash(version uint64) (hash []byte, tainted bool) {
 
 	hash, ok := storage.Get(id)
 	if ok {
+		// you're getting the past so it's cached
 		return
 	}
 
