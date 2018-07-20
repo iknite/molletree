@@ -34,11 +34,10 @@ func TestCommitment(t *testing.T) {
 
 		// almost like tree.Add except we provide the digest to allow easier
 		// tests.
-		version := uint64(i)
-		node := &Node{index: version, layer: 0, tree: tree}
+		node := &Node{index: uint64(i), layer: 0, tree: tree}
 		storage.Set(node.String(), c.eventDigest)
 
-		commitment := node.Commitment(version)
+		commitment := node.Commitment()
 		node.tree.version += 1
 
 		assert.Equalf(t, c.commitment, commitment, "Incorrect commitment for index %d", i)

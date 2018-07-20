@@ -29,7 +29,7 @@ func (t *Tree) Add(event string) []byte {
 	node := &Node{index: t.version, layer: 0, tree: t}
 	storage.Set(node.String(), t.hasher.Do((encstring.ToBytes(event))))
 
-	commitment := node.Commitment(t.version)
+	commitment := node.Commitment()
 
 	t.version += 1
 
