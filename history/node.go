@@ -79,10 +79,11 @@ func (n *Node) Hash(version uint64) (hash []byte, tainted bool) {
 
 	hash = n.tree.hasher.Cipher(n.Id(), leftHash, rightHash)
 
-	// is storable when the childrens are complete and you're not a rootNode
-	if rightHash != nil && !rightTainted && !n.isRootNode() {
+	if rightHash != nil && !rightTainted {
+		// is storable when the childrens are complete
 		storage.Set(id, hash)
 	} else {
+		// If bottom nodes are empty warn the upper about it
 		tainted = true
 	}
 
