@@ -15,7 +15,7 @@ type Node struct {
 
 // Stringer implementation
 func (n *Node) String() string {
-	return fmt.Sprintf("%d:%d", n.index, n.layer)
+	return fmt.Sprintf("%d|%d", n.index, n.layer)
 }
 
 func (n *Node) Id() []byte {
@@ -25,6 +25,10 @@ func (n *Node) Id() []byte {
 }
 
 func (n *Node) Left() *Node {
+	if n.layer < 1 {
+		return nil
+	}
+
 	return &Node{
 		index: n.index,
 		layer: n.layer - 1,
@@ -33,11 +37,13 @@ func (n *Node) Left() *Node {
 }
 
 func (n *Node) Right() *Node {
-	position := n.layer - 1
+	if n.layer < 1 {
+		return nil
+	}
 
 	return &Node{
-		index: n.index + uint64(math.Exp2(float64(position))),
-		layer: position,
+		index: n.index + uint64(math.Exp2(float64(n.layer-1))),
+		layer: n.layer - 1,
 		tree:  n.tree,
 	}
 }
@@ -63,9 +69,10 @@ func (n *Node) Hash(version uint64) (hash []byte, tainted bool) {
 		return
 	}
 
-	id := n.String()
+	nodeString := n.String()
 
-	hash, ok := storage.Get(id)
+	// REFACTOR: this call is slow if it touches the disk
+	hash, ok := n.tree.store.Get(nodeString)
 	if ok {
 		// you're getting the past so it's cached
 		return
@@ -81,11 +88,43 @@ func (n *Node) Hash(version uint64) (hash []byte, tainted bool) {
 
 	if rightHash != nil && !rightTainted {
 		// is storable when the childrens are complete
-		storage.Set(id, hash)
+		n.tree.store.Set(nodeString, hash)
 	} else {
 		// If bottom nodes are empty warn the upper about it
 		tainted = true
 	}
 
 	return
+}
+
+func (n *Node) AuditPath() storage.Store {
+	rootNode := n.Root()
+	store := storage.NewStore()
+
+	collectAuditPath(store, rootNode, n.index)
+
+	hash, _ := n.tree.store.Get(n.String())
+	store.Set(n.String(), hash)
+
+	return store
+}
+
+func collectAuditPath(store storage.Store, node *Node, version uint64) {
+
+	rightNode := node.Right()
+	leftNode := node.Left()
+
+	if rightNode == nil || leftNode == nil {
+		return
+	}
+
+	if rightNode.index <= version {
+		leftHash, _ := leftNode.tree.store.Get(leftNode.String())
+		store.Set(leftNode.String(), leftHash)
+
+		collectAuditPath(store, rightNode, version)
+	} else {
+		collectAuditPath(store, leftNode, version)
+	}
+
 }

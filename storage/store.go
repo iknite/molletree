@@ -1,13 +1,21 @@
 package storage
 
-var std map[string][]byte
-
-func init() {
-	std = make(map[string][]byte)
+type Store struct {
+	Std map[string][]byte
 }
 
-func Get(id string) ([]byte, bool) {
-	res, ok := std[id]
+var std Store
+
+func NewStore() Store {
+	return Store{Std: make(map[string][]byte)}
+}
+
+func init() {
+	std = NewStore()
+}
+
+func (s *Store) Get(id string) ([]byte, bool) {
+	res, ok := s.Std[id]
 	if ok {
 		return res, true
 	}
@@ -15,6 +23,6 @@ func Get(id string) ([]byte, bool) {
 	return make([]byte, 0), false
 }
 
-func Set(id string, data []byte) {
-	std[id] = data
+func (s *Store) Set(id string, data []byte) {
+	s.Std[id] = data
 }
