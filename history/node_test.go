@@ -52,16 +52,16 @@ func TestProveMembership(t *testing.T) {
 		eventDigest []byte
 		auditPath   storage.Store
 	}{
-		{[]byte{0x0}, storage.Store{Std: map[string][]byte{"0|0": []uint8{0x0}}}},
-		{[]byte{0x1}, storage.Store{Std: map[string][]byte{"0|0": []uint8{0x0}, "1|0": []uint8{0x1}}}},
-		{[]byte{0x2}, storage.Store{Std: map[string][]byte{"0|1": []uint8{0x1}, "2|0": []uint8{0x2}}}},
-		{[]byte{0x3}, storage.Store{Std: map[string][]byte{"0|1": []uint8{0x1}, "2|0": []uint8{0x2}, "3|0": []uint8{0x3}}}},
-		{[]byte{0x4}, storage.Store{Std: map[string][]byte{"0|2": []uint8{0x0}, "4|0": []uint8{0x4}}}},
-		{[]byte{0x5}, storage.Store{Std: map[string][]byte{"0|2": []uint8{0x0}, "4|0": []uint8{0x4}, "5|0": []uint8{0x5}}}},
-		{[]byte{0x6}, storage.Store{Std: map[string][]byte{"0|2": []uint8{0x0}, "4|1": []uint8{0x1}, "6|0": []uint8{0x6}}}},
-		{[]byte{0x7}, storage.Store{Std: map[string][]byte{"0|2": []uint8{0x0}, "4|1": []uint8{0x1}, "6|0": []uint8{0x6}, "7|0": []uint8{0x7}}}},
-		{[]byte{0x8}, storage.Store{Std: map[string][]byte{"0|3": []uint8{0x0}, "8|0": []uint8{0x8}}}},
-		{[]byte{0x9}, storage.Store{Std: map[string][]byte{"0|3": []uint8{0x0}, "8|0": []uint8{0x8}, "9|0": []uint8{0x9}}}},
+		{[]byte{0x0}, storage.Store{"0|0": []uint8{0x0}}},
+		{[]byte{0x1}, storage.Store{"0|0": []uint8{0x0}, "1|0": []uint8{0x1}}},
+		{[]byte{0x2}, storage.Store{"0|1": []uint8{0x1}, "2|0": []uint8{0x2}}},
+		{[]byte{0x3}, storage.Store{"0|1": []uint8{0x1}, "2|0": []uint8{0x2}, "3|0": []uint8{0x3}}},
+		{[]byte{0x4}, storage.Store{"0|2": []uint8{0x0}, "4|0": []uint8{0x4}}},
+		{[]byte{0x5}, storage.Store{"0|2": []uint8{0x0}, "4|0": []uint8{0x4}, "5|0": []uint8{0x5}}},
+		{[]byte{0x6}, storage.Store{"0|2": []uint8{0x0}, "4|1": []uint8{0x1}, "6|0": []uint8{0x6}}},
+		{[]byte{0x7}, storage.Store{"0|2": []uint8{0x0}, "4|1": []uint8{0x1}, "6|0": []uint8{0x6}, "7|0": []uint8{0x7}}},
+		{[]byte{0x8}, storage.Store{"0|3": []uint8{0x0}, "8|0": []uint8{0x8}}},
+		{[]byte{0x9}, storage.Store{"0|3": []uint8{0x0}, "8|0": []uint8{0x8}, "9|0": []uint8{0x9}}},
 	}
 
 	tree := &Tree{version: 0, hasher: &hashing.XorHasher{}, store: storage.NewStore()}
@@ -80,7 +80,6 @@ func TestProveMembership(t *testing.T) {
 
 func TestProveMembershipWithInvalidTargetVersion(t *testing.T) {
 	tree := &Tree{version: 0, hasher: &hashing.XorHasher{}, store: storage.NewStore()}
-
 	tree.Add("Event1")
 
 	defer func() {
@@ -89,6 +88,7 @@ func TestProveMembershipWithInvalidTargetVersion(t *testing.T) {
 		}
 	}()
 	tree.MembershipProof([]byte{0x0}, 1, 0)
+
 }
 
 func TestProveMembershipNonConsecutive(t *testing.T) {
@@ -103,13 +103,7 @@ func TestProveMembershipNonConsecutive(t *testing.T) {
 
 	// query for membership with event 0 and version 8
 	pfNode := &Node{index: 0, layer: 0, tree: tree}
-	expectedAuditPath := storage.Store{Std: map[string][]byte{
-		"0|0": []uint8{0x0},
-		"1|0": []uint8{0x1},
-		"2|1": []uint8{0x1},
-		"4|2": []uint8{0x0},
-		"8|3": []uint8{0x8},
-	}}
+	expectedAuditPath := storage.Store{"0|0": []uint8{0x0}, "1|0": []uint8{0x1}, "2|1": []uint8{0x1}, "4|2": []uint8{0x0}, "8|3": []uint8{0x8}}
 
 	assert.Equal(t, expectedAuditPath, pfNode.AuditPath(8), "Invalid audit path")
 }
