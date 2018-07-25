@@ -1,9 +1,9 @@
 package history
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/iknite/bygone-tree/encoding/encuint64"
 	"github.com/iknite/bygone-tree/hashing"
 	"github.com/iknite/bygone-tree/storage"
 	assert "github.com/stretchr/testify/require"
@@ -38,7 +38,7 @@ func TestCommitment(t *testing.T) {
 		node := &Node{index: uint64(i), layer: 0, tree: tree}
 		node.tree.store.Set(node.String(), c.eventDigest)
 
-		commitment := node.Commitment(n.index)
+		commitment := node.Commitment()
 		node.tree.version += 1
 
 		assert.Equalf(t, c.commitment, commitment, "Incorrect commitment for index %d", i)
@@ -70,9 +70,9 @@ func TestProveMembership(t *testing.T) {
 		index := uint64(i)
 		node := &Node{index: index, layer: 0, tree: tree}
 		node.tree.store.Set(node.String(), c.eventDigest)
-		node.Commitment(n.index)
+		node.Commitment()
 
-		assert.Equalf(t, c.auditPath, node.AuditPath(), "Incorrect audit path for index %d", i)
+		assert.Equalf(t, c.auditPath, node.AuditPath(node.index), "Incorrect audit path for index %d", i)
 
 		node.tree.version += 1
 	}
@@ -83,34 +83,33 @@ func TestProveMembershipWithInvalidTargetVersion(t *testing.T) {
 
 	tree.Add("Event1")
 
-	pf := tree.MembershipProof([]byte{0x0}, 1, 0)
-
-	fmt.Println(pf)
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("should raise and error")
+		}
+	}()
+	tree.MembershipProof([]byte{0x0}, 1, 0)
 }
 
-//
-// func TestProveMembershipNonConsecutive(t *testing.T) {
-// 	frozen, close := openBPlusStorage()
-// 	defer close()
-//
-// 	hasher := new(hashing.XorHasher)
-// 	tree := NewTree("treeId", frozen, hasher)
-// 	tree.leafHash = fakeLeafHasherCleanF(hasher)
-// 	tree.interiorHash = fakeInteriorHasherCleanF(hasher)
-// 	// Note that we are using fake hashing functions and the index
-// 	// as the value of the event's digest to make predictable hashes
-//
-// 	// add nine events
-// 	for i := uint64(0); i < 9; i++ {
-// 		eventDigest := uint64AsBytes(i)
-// 		index := uint64AsBytes(i)
-// 		_, err := tree.Add(eventDigest, index)
-// 		assert.NoError(t, err, "Error while adding to the tree")
-// 	}
-//
-// 	// query for membership with event 0 and version 8
-// 	pf, err := tree.ProveMembership([]byte{0x0}, 0, 8)
-// 	assert.NoError(t, err, "Error proving membership")
-// 	expectedAuditPath := proof.AuditPath{"0|0": []uint8{0x0}, "1|0": []uint8{0x1}, "2|1": []uint8{0x1}, "4|2": []uint8{0x0}, "8|3": []uint8{0x8}}
-// 	assert.Equal(t, expectedAuditPath, pf.AuditPath(), "Invalid audit path")
-// }
+func TestProveMembershipNonConsecutive(t *testing.T) {
+	tree := &Tree{version: 0, hasher: &hashing.XorHasher{}, store: storage.NewStore()}
+
+	// add nine events
+	for i := uint64(0); i < 9; i++ {
+		node := &Node{index: i, layer: 0, tree: tree}
+		node.tree.store.Set(node.String(), encuint64.ToBytes(i))
+		node.Commitment()
+	}
+
+	// query for membership with event 0 and version 8
+	pfNode := &Node{index: 0, layer: 0, tree: tree}
+	expectedAuditPath := storage.Store{Std: map[string][]byte{
+		"0|0": []uint8{0x0},
+		"1|0": []uint8{0x1},
+		"2|1": []uint8{0x1},
+		"4|2": []uint8{0x0},
+		"8|3": []uint8{0x8},
+	}}
+
+	assert.Equal(t, expectedAuditPath, pfNode.AuditPath(8), "Invalid audit path")
+}

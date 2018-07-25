@@ -58,11 +58,11 @@ func (n *Node) Root() *Node {
 
 func (n *Node) Commitment() []byte {
 	rootNode := n.Root()
-	hash, _ := rootNode.Hash(n.index)
+	hash, _ := rootNode.hash(n.index)
 	return hash
 }
 
-func (n *Node) Hash(version uint64) (hash []byte, tainted bool) {
+func (n *Node) hash(version uint64) (hash []byte, tainted bool) {
 
 	if n.index > version {
 		// if you're trying to get the future, return nil
@@ -79,10 +79,10 @@ func (n *Node) Hash(version uint64) (hash []byte, tainted bool) {
 	}
 
 	leftN := n.Left()
-	leftHash, _ := leftN.Hash(version)
+	leftHash, _ := leftN.hash(version)
 
 	rightN := n.Right()
-	rightHash, rightTainted := rightN.Hash(version)
+	rightHash, rightTainted := rightN.hash(version)
 
 	hash = n.tree.hasher.Cipher(n.Id(), leftHash, rightHash)
 
@@ -97,11 +97,14 @@ func (n *Node) Hash(version uint64) (hash []byte, tainted bool) {
 	return
 }
 
-func (n *Node) AuditPath() storage.Store {
+func (n *Node) AuditPath(version uint64) storage.Store {
+	if n.index > version {
+		panic("version is below target")
+	}
 	rootNode := n.Root()
 	store := storage.NewStore()
 
-	collectAuditPath(store, rootNode, n.index)
+	collectAuditPath(store, rootNode, n.index, version)
 
 	hash, _ := n.tree.store.Get(n.String())
 	store.Set(n.String(), hash)
@@ -109,22 +112,24 @@ func (n *Node) AuditPath() storage.Store {
 	return store
 }
 
-func collectAuditPath(store storage.Store, node *Node, version uint64) {
+func collectAuditPath(store storage.Store, node *Node, target, version uint64) {
+	if node.layer < 1 {
+		return
+	}
 
 	rightNode := node.Right()
 	leftNode := node.Left()
 
-	if rightNode == nil || leftNode == nil {
-		return
-	}
-
-	if rightNode.index <= version {
+	if rightNode.index <= target {
 		leftHash, _ := leftNode.tree.store.Get(leftNode.String())
 		store.Set(leftNode.String(), leftHash)
 
-		collectAuditPath(store, rightNode, version)
+		collectAuditPath(store, rightNode, target, version)
 	} else {
-		collectAuditPath(store, leftNode, version)
+		if rightNode.index <= version {
+			rightHash, _ := rightNode.tree.store.Get(rightNode.String())
+			store.Set(rightNode.String(), rightHash)
+		}
+		collectAuditPath(store, leftNode, target, version)
 	}
-
 }

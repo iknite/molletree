@@ -31,7 +31,7 @@ func (t *Tree) Add(event string) []byte {
 	// Add a leaf node
 	node := &Node{index: t.version, layer: 0, tree: t}
 	t.store.Set(node.String(), t.hasher.Do((encstring.ToBytes(event))))
-	commitment := node.Commitment(node.index)
+	commitment := node.Commitment()
 
 	t.version += 1
 
@@ -47,7 +47,7 @@ type Proof struct {
 
 func (t *Tree) MembershipProof(commitment []byte, index uint64, version uint64) *Proof {
 	node := &Node{index: index, layer: 0, tree: t}
-	audithpath := node.AuditPath()
+	audithpath := node.AuditPath(version)
 
 	return &Proof{
 		commitment: commitment,
@@ -61,5 +61,5 @@ func (p *Proof) Verify() bool {
 	t := &Tree{version: p.version, hasher: p.hasher, store: p.store}
 	node := &Node{index: t.version, layer: 0, tree: t}
 
-	return encbytes.ToString(node.Commitment(version)) == encbytes.ToString(p.commitment)
+	return encbytes.ToString(node.Commitment()) == encbytes.ToString(p.commitment)
 }
