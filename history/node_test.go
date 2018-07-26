@@ -88,7 +88,7 @@ func TestProveMembershipWithInvalidTargetVersion(t *testing.T) {
 			t.Error("should raise an error")
 		}
 	}()
-	tree.MembershipProof([]byte{0x0}, 1, 0)
+	tree.ProveMembership([]byte{0x0}, 1, 0)
 }
 
 func TestProveMembershipNonConsecutive(t *testing.T) {

@@ -38,18 +38,18 @@ func (t *Tree) Add(event string) []byte {
 	return commitment
 }
 
-type Proof struct {
+type MembeshipProof struct {
 	commitment []byte
 	version    uint64
 	store      storage.Store
 	hasher     hashing.Hasher
 }
 
-func (t *Tree) MembershipProof(commitment []byte, index uint64, version uint64) *Proof {
+func (t *Tree) ProveMembership(commitment []byte, index uint64, version uint64) *MembeshipProof {
 	node := &Node{index: index, layer: 0, tree: t}
 	audithpath := node.AuditPath(version)
 
-	return &Proof{
+	return &MembeshipProof{
 		commitment: commitment,
 		version:    version,
 		store:      audithpath,
@@ -57,7 +57,7 @@ func (t *Tree) MembershipProof(commitment []byte, index uint64, version uint64) 
 	}
 }
 
-func (p *Proof) Verify() bool {
+func (p *MembeshipProof) Verify() bool {
 	t := &Tree{version: p.version, hasher: p.hasher, store: p.store}
 	node := &Node{index: t.version, layer: 0, tree: t}
 
