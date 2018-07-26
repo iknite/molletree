@@ -18,3 +18,9 @@ func (s *Store) Get(id string) ([]byte, bool) {
 func (s *Store) Set(id string, data []byte) {
 	(*s)[id] = data
 }
+
+func (s *Store) Merge(store Store) {
+	for k, v := range store {
+		(*s)[k] = v
+	}
+}
