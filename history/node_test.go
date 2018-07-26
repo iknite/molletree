@@ -3,10 +3,11 @@ package history
 import (
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
+
 	"github.com/iknite/bygone-tree/encoding/encuint64"
 	"github.com/iknite/bygone-tree/hashing"
 	"github.com/iknite/bygone-tree/storage"
-	assert "github.com/stretchr/testify/require"
 )
 
 func TestCommitment(t *testing.T) {
@@ -84,11 +85,10 @@ func TestProveMembershipWithInvalidTargetVersion(t *testing.T) {
 
 	defer func() {
 		if r := recover(); r == nil {
-			t.Error("should raise and error")
+			t.Error("should raise an error")
 		}
 	}()
 	tree.MembershipProof([]byte{0x0}, 1, 0)
-
 }
 
 func TestProveMembershipNonConsecutive(t *testing.T) {
@@ -103,7 +103,7 @@ func TestProveMembershipNonConsecutive(t *testing.T) {
 
 	// query for membership with event 0 and version 8
 	pfNode := &Node{index: 0, layer: 0, tree: tree}
-	expectedAuditPath := storage.Store{"0|0": []uint8{0x0}, "1|0": []uint8{0x1}, "2|1": []uint8{0x1}, "4|2": []uint8{0x0}, "8|3": []uint8{0x8}}
+	au := storage.Store{"0|0": []uint8{0x0}, "1|0": []uint8{0x1}, "2|1": []uint8{0x1}, "4|2": []uint8{0x0}, "8|3": []uint8{0x8}}
 
-	assert.Equal(t, expectedAuditPath, pfNode.AuditPath(8), "Invalid audit path")
+	assert.Equal(t, au, pfNode.AuditPath(8), "Invalid audit path")
 }

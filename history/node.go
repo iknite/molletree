@@ -25,10 +25,6 @@ func (n *Node) Id() []byte {
 }
 
 func (n *Node) Left() *Node {
-	if n.layer < 1 {
-		return nil
-	}
-
 	return &Node{
 		index: n.index,
 		layer: n.layer - 1,
@@ -37,10 +33,6 @@ func (n *Node) Left() *Node {
 }
 
 func (n *Node) Right() *Node {
-	if n.layer < 1 {
-		return nil
-	}
-
 	return &Node{
 		index: n.index + uint64(math.Exp2(float64(n.layer-1))),
 		layer: n.layer - 1,
@@ -48,16 +40,16 @@ func (n *Node) Right() *Node {
 	}
 }
 
-func (n *Node) Root() *Node {
+func (n *Node) Root(version uint64) *Node {
 	return &Node{
 		index: 0,
-		layer: treeHeight(n.index),
+		layer: treeHeight(version),
 		tree:  n.tree,
 	}
 }
 
 func (n *Node) Commitment() []byte {
-	rootNode := n.Root()
+	rootNode := n.Root(n.index)
 	hash, _ := rootNode.hash(n.index)
 	return hash
 }
@@ -101,7 +93,7 @@ func (n *Node) AuditPath(version uint64) storage.Store {
 	if n.index > version {
 		panic("version is below target")
 	}
-	rootNode := n.Root()
+	rootNode := n.Root(version)
 	store := storage.NewStore()
 
 	collectAuditPath(store, rootNode, n.index, version)
