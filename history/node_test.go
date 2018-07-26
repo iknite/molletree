@@ -5,7 +5,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
-	"github.com/iknite/bygone-tree/encoding/encuint64"
+	"github.com/iknite/bygone-tree/encoding/encstring"
 	"github.com/iknite/bygone-tree/hashing"
 	"github.com/iknite/bygone-tree/storage"
 )
@@ -97,12 +97,13 @@ func TestProveMembershipNonConsecutive(t *testing.T) {
 	// add nine events
 	for i := uint64(0); i < 9; i++ {
 		node := &Node{index: i, layer: 0, tree: tree}
-		node.tree.store.Set(node.String(), encuint64.ToBytes(i))
+		node.tree.store.Set(node.String(), encstring.ToBytes(string(i)))
 		node.Commitment()
 	}
 
 	// query for membership with event 0 and version 8
 	pfNode := &Node{index: 0, layer: 0, tree: tree}
+
 	au := storage.Store{"0|0": []uint8{0x0}, "1|0": []uint8{0x1}, "2|1": []uint8{0x1}, "4|2": []uint8{0x0}, "8|3": []uint8{0x8}}
 
 	assert.Equal(t, au, pfNode.AuditPath(8), "Invalid audit path")

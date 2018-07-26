@@ -49,57 +49,54 @@ func (n *Node) Root(version uint64) *Node {
 }
 
 func (n *Node) Commitment() []byte {
-	rootNode := n.Root(n.index)
-	hash, _ := rootNode.hash(n.index)
+	return n.Root(n.index).Hash(n.index)
+}
+
+func (n *Node) Hash(version uint64) []byte {
+	hash, _ := n.hash(version)
 	return hash
 }
 
 func (n *Node) hash(version uint64) (hash []byte, tainted bool) {
 
 	if n.index > version {
-		// if you're trying to get the future, return nil
-		return
+		return // if you're trying to get the future, return nil
 	}
 
-	nodeString := n.String()
+	key := n.String()
 
-	// REFACTOR: this call is slow if it touches the disk
-	hash, ok := n.tree.store.Get(nodeString)
+	hash, ok := n.tree.store.Get(key) // TODO: this call is slow if it touches the disk
+
 	if ok {
-		// you're getting the past so it's cached
-		return
+		return // you're getting the past so it's cached
 	}
 
-	leftN := n.Left()
-	leftHash, _ := leftN.hash(version)
+	rightHash, rightTainted := n.Right().hash(version)
 
-	rightN := n.Right()
-	rightHash, rightTainted := rightN.hash(version)
-
-	hash = n.tree.hasher.Cipher(n.Id(), leftHash, rightHash)
+	hash = n.tree.hasher.Cipher(
+		n.Id(),
+		n.Left().Hash(version),
+		rightHash,
+	)
 
 	if rightHash != nil && !rightTainted {
-		// is storable when the childrens are complete
-		n.tree.store.Set(nodeString, hash)
+		n.tree.store.Set(key, hash) // is storable when the childrens are complete
 	} else {
-		// If bottom nodes are empty warn the upper about it
-		tainted = true
+		tainted = true // If bottom nodes are empty warn the upper about it
 	}
 
 	return
+
 }
 
 func (n *Node) AuditPath(version uint64) storage.Store {
 	if n.index > version {
 		panic("version is below target")
 	}
-	rootNode := n.Root(version)
+
 	store := storage.NewStore()
-
-	collectAuditPath(store, rootNode, n.index, version)
-
-	hash, _ := n.tree.store.Get(n.String())
-	store.Set(n.String(), hash)
+	collectAuditPath(store, n.Root(version), n.index, version)
+	store.Set(n.String(), n.Hash(version))
 
 	return store
 }
@@ -113,14 +110,12 @@ func collectAuditPath(store storage.Store, node *Node, target, version uint64) {
 	leftNode := node.Left()
 
 	if rightNode.index <= target {
-		leftHash, _ := leftNode.tree.store.Get(leftNode.String())
-		store.Set(leftNode.String(), leftHash)
-
+		store.Set(leftNode.String(), leftNode.Hash(version))
 		collectAuditPath(store, rightNode, target, version)
+
 	} else {
 		if rightNode.index <= version {
-			rightHash, _ := rightNode.tree.store.Get(rightNode.String())
-			store.Set(rightNode.String(), rightHash)
+			store.Set(rightNode.String(), rightNode.Hash(version))
 		}
 		collectAuditPath(store, leftNode, target, version)
 	}
