@@ -48,6 +48,15 @@ func (n *Node) Root(version uint64) *Node {
 	}
 }
 
+func (n *Node) Next(indexTarget uint64) *Node {
+	right := n.Right()
+	if right.index <= indexTarget {
+		return right
+	} else {
+		return n.Left()
+	}
+}
+
 func (n *Node) Commitment() []byte {
 	return n.Root(n.index).Hash(n.index)
 }
@@ -90,33 +99,78 @@ func (n *Node) hash(version uint64) (hash []byte, tainted bool) {
 }
 
 func (n *Node) AuditPath(version uint64) storage.Store {
+
 	if n.index > version {
-		panic("version is below target")
+		panic("version is below index")
 	}
 
 	store := storage.NewStore()
 	collectAuditPath(store, n.Root(version), n.index, version)
-	store.Set(n.String(), n.Hash(version))
 
 	return store
+
 }
 
 func collectAuditPath(store storage.Store, node *Node, target, version uint64) {
+
 	if node.layer < 1 {
+		// Store the leaf node and end traversing
+		store.Set(node.String(), node.Hash(version))
 		return
 	}
 
-	rightNode := node.Right()
-	leftNode := node.Left()
+	right := node.Right()
+	left := node.Left()
 
-	if rightNode.index <= target {
-		store.Set(leftNode.String(), leftNode.Hash(version))
-		collectAuditPath(store, rightNode, target, version)
+	if right.index <= target {
+		store.Set(left.String(), left.Hash(version))
+		collectAuditPath(store, right, target, version)
 
 	} else {
-		if rightNode.index <= version {
-			store.Set(rightNode.String(), rightNode.Hash(version))
+		if right.index <= version {
+			store.Set(right.String(), right.Hash(version))
 		}
-		collectAuditPath(store, leftNode, target, version)
+		collectAuditPath(store, left, target, version)
 	}
+
+}
+
+func (n *Node) IncrementalAuditPath(n2 *Node) storage.Store {
+	store := storage.NewStore()
+	collectIncrementalAuditPath(store, n.Root(n2.index), n.index, n2.index)
+
+	return store
+
+}
+
+func collectIncrementalAuditPath(store storage.Store, node *Node, t1, t2 uint64) {
+	if node.layer < 1 {
+		store.Set(node.String(), node.Hash(t2))
+		return
+	}
+
+	targetN1 := node.Next(t1)
+	targetN2 := node.Next(t2)
+
+	if targetN1.index != targetN2.index {
+		// if there is a split between paths, compute the paths independtly
+		collectAuditPath(store, targetN1, t1, t2)
+		collectAuditPath(store, targetN2, t2, t2)
+		return
+	}
+
+	right := node.Right()
+	left := node.Left()
+
+	if right.index == targetN1.index {
+		store.Set(left.String(), left.Hash(t2))
+		collectIncrementalAuditPath(store, right, t1, t2)
+
+	} else {
+		if right.index <= t2 {
+			store.Set(right.String(), right.Hash(t2))
+		}
+		collectIncrementalAuditPath(store, left, t1, t2)
+	}
+
 }
