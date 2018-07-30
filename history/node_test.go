@@ -6,9 +6,9 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 
-	"github.com/iknite/bygone-tree/encoding/encstring"
-	"github.com/iknite/bygone-tree/hashing"
-	"github.com/iknite/bygone-tree/storage"
+	"github.com/iknite/molletree/encoding/encstring"
+	"github.com/iknite/molletree/hashing"
+	"github.com/iknite/molletree/storage"
 )
 
 func TestCommitment(t *testing.T) {

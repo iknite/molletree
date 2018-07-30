@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/iknite/bygone-tree/encoding/encuint64"
-	"github.com/iknite/bygone-tree/storage"
+	"github.com/iknite/molletree/encoding/encuint64"
+	"github.com/iknite/molletree/storage"
 )
 
 type Node struct {

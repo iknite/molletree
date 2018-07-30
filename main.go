@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/iknite/bygone-tree/history"
+	"github.com/iknite/molletree/history"
 )
 
 func main() {

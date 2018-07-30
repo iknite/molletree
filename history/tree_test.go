@@ -3,8 +3,8 @@ package history
 import (
 	"testing"
 
-	"github.com/iknite/bygone-tree/hashing"
-	"github.com/iknite/bygone-tree/storage"
+	"github.com/iknite/molletree/hashing"
+	"github.com/iknite/molletree/storage"
 	assert "github.com/stretchr/testify/require"
 )
 

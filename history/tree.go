@@ -3,10 +3,10 @@ package history
 import (
 	"math"
 
-	"github.com/iknite/bygone-tree/encoding/encbytes"
-	"github.com/iknite/bygone-tree/encoding/encstring"
-	"github.com/iknite/bygone-tree/hashing"
-	"github.com/iknite/bygone-tree/storage"
+	"github.com/iknite/molletree/encoding/encbytes"
+	"github.com/iknite/molletree/encoding/encstring"
+	"github.com/iknite/molletree/hashing"
+	"github.com/iknite/molletree/storage"
 )
 
 type Tree struct {
