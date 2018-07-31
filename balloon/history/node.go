@@ -2,7 +2,6 @@ package history
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/iknite/molletree/encoding/encuint64"
 )
@@ -33,7 +32,7 @@ func (n *Node) Left() *Node {
 
 func (n *Node) Right() *Node {
 	return &Node{
-		index: n.index + uint64(math.Exp2(float64(n.layer-1))),
+		index: n.index + (1 << (n.layer - 1)),
 		layer: n.layer - 1,
 		tree:  n.tree,
 	}
