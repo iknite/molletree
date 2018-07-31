@@ -7,8 +7,10 @@ import (
 func (t *Tree) Add(event string) (commitment []byte, digest []byte) {
 	// Add a leaf node
 	node := &Node{index: t.version, layer: 0, tree: t}
+
 	digest = t.hasher.Cipher(node.Id(), (encstring.ToBytes(event)))
 	t.store.Set(node.String(), digest)
+
 	commitment = node.Commitment()
 
 	t.version += 1
@@ -33,7 +35,7 @@ func (n *Node) hash(version uint64) (hash []byte, tainted bool) {
 
 	key := n.String()
 
-	hash, ok := n.tree.store.Get(key) // TODO: this call is slow if it touches the disk
+	hash, ok := n.tree.store.Get(key)
 	if ok {
 		return // you're getting the past so it's cached
 	}

@@ -16,7 +16,7 @@ type Tree struct {
 func NewTree() *Tree {
 	return &Tree{
 		version: 0,
-		hasher:  &hashing.Sha256Hasher{},
+		hasher:  hashing.NewSha256(),
 		store:   storage.NewStore(),
 	}
 }

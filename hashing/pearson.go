@@ -1,10 +1,14 @@
 package hashing
 
-// PearsonHasher implements the Hasher interface and computes a 8 bit hash
+// Pearson implements the Hasher interface and computes a 8 bit hash
 // function. Handy for testing hash tree implementations.
-type PearsonHasher struct{}
+type Pearson struct{}
 
-func (p PearsonHasher) Do(data ...[]byte) []byte {
+func NewPearson() *Pearson {
+	return new(Pearson)
+}
+
+func (p Pearson) Do(data ...[]byte) []byte {
 	lookupTable := [...]uint8{
 		// 0-255 shuffled in any (random) order suffices
 		0x62, 0x06, 0x55, 0x96, 0x24, 0x17, 0x70, 0xa4, 0x87, 0xcf, 0xa9, 0x05, 0x1a, 0x40, 0xa5, 0xdb, //  1
@@ -42,8 +46,8 @@ func (p PearsonHasher) Do(data ...[]byte) []byte {
 
 }
 
-func (p PearsonHasher) Cipher(_ []byte, data ...[]byte) []byte {
+func (p Pearson) Cipher(_ []byte, data ...[]byte) []byte {
 	return p.Do(data...)
 }
 
-func (p PearsonHasher) Len() uint64 { return uint64(8) }
+func (p Pearson) Len() uint64 { return uint64(8) }

@@ -29,7 +29,7 @@ func TestCommitment(t *testing.T) {
 
 	// Note that we are using fake hashing functions and the index
 	// as the value of the event's digest to make predictable hashes
-	tree := &Tree{version: 0, hasher: &hashing.XorHasher{}, store: storage.NewStore()}
+	tree := &Tree{version: 0, hasher: hashing.NewXor(), store: storage.NewStore()}
 
 	for i, c := range testCases {
 

@@ -1,10 +1,14 @@
 package hashing
 
-// XorHasher implements the Hasher interface and computes a xor function.
+// Xor implements the Hasher interface and computes a xor function.
 // Handy for testing hash tree implementations.
-type XorHasher struct{}
+type Xor struct{}
 
-func (x XorHasher) Do(data ...[]byte) []byte {
+func NewXor() *Xor {
+	return new(Xor)
+}
+
+func (x Xor) Do(data ...[]byte) []byte {
 	var result byte
 	for _, elem := range data {
 		var sum byte
@@ -16,8 +20,8 @@ func (x XorHasher) Do(data ...[]byte) []byte {
 	return []byte{result}
 }
 
-func (s XorHasher) Cipher(_ []byte, data ...[]byte) []byte {
+func (s Xor) Cipher(_ []byte, data ...[]byte) []byte {
 	return s.Do(data...)
 }
 
-func (s XorHasher) Len() uint64 { return uint64(8) }
+func (s Xor) Len() uint64 { return uint64(8) }

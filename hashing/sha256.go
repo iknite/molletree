@@ -2,23 +2,32 @@ package hashing
 
 import (
 	"crypto/sha256"
+	"hash"
 )
 
-// Sha256Hasher implements the Hasher interface and computes the crypto/sha256
+// Sha256 implements the Hasher interface and computes the crypto/sha256
 // internal function.
-type Sha256Hasher struct{}
-
-func (s Sha256Hasher) Do(data ...[]byte) []byte {
-	hash := sha256.New()
-
-	for i := 0; i < len(data); i++ {
-		hash.Write(data[i])
-	}
-
-	return hash.Sum(nil)[:]
+type Sha256 struct {
+	h hash.Hash
 }
 
-func (s Sha256Hasher) Cipher(id []byte, data ...[]byte) []byte {
+func NewSha256() *Sha256 {
+	return &Sha256{
+		h: sha256.New(),
+	}
+}
+
+func (s Sha256) Do(data ...[]byte) []byte {
+	s.h.Reset()
+
+	for i := 0; i < len(data); i++ {
+		s.h.Write(data[i])
+	}
+
+	return s.h.Sum(nil)[:]
+}
+
+func (s Sha256) Cipher(id []byte, data ...[]byte) []byte {
 	b := [][]byte{id}
 	for _, n := range data {
 		b = append(b, []byte(n))
@@ -27,4 +36,4 @@ func (s Sha256Hasher) Cipher(id []byte, data ...[]byte) []byte {
 	return s.Do(b...)
 }
 
-func (s Sha256Hasher) Len() uint64 { return uint64(256) }
+func (s Sha256) Len() uint64 { return uint64(256) }

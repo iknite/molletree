@@ -1,7 +1,6 @@
 package history
 
 import (
-	"fmt"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -44,7 +43,7 @@ func TestVerifyIncremental(t *testing.T) {
 		},
 	}
 
-	h := &hashing.XorHasher{}
+	h := hashing.NewXor()
 
 	for _, c := range testCases {
 		proof := &IncrementalProof{c.start, c.end, c.store, h}
@@ -60,7 +59,7 @@ func max(x, y int) uint64 {
 }
 
 func TestProveAndVerifyConsecutivelyN(t *testing.T) {
-	tree := &Tree{version: 0, hasher: &hashing.XorHasher{}, store: storage.NewStore()}
+	tree := &Tree{version: 0, hasher: hashing.NewXor(), store: storage.NewStore()}
 	digests := make(map[uint64][]byte)
 
 	for i := uint64(0); i < 10; i++ {
@@ -75,12 +74,13 @@ func TestProveAndVerifyConsecutivelyN(t *testing.T) {
 
 		pf := tree.ProveIncremental(start, i)
 
-		assert.True(t, pf.Verify(digests[start], digests[i]), "The proof should verfify correctly")
+		assert.True(t, pf.Verify(digests[start], digests[i]),
+			"The proof should verfify correctly")
 	}
 }
 
 func TestProveAndVerifyNonConsecutively(t *testing.T) {
-	tree := &Tree{version: 0, hasher: &hashing.XorHasher{}, store: storage.NewStore()}
+	tree := &Tree{version: 0, hasher: hashing.NewXor(), store: storage.NewStore()}
 
 	const size uint64 = 10
 	digests := make(map[uint64][]byte)
@@ -96,12 +96,7 @@ func TestProveAndVerifyNonConsecutively(t *testing.T) {
 	for i := uint64(0); i < size-1; i++ {
 		for j := i + 1; j < size; j++ {
 			pf := tree.ProveIncremental(i, j)
-
-			vf := pf.Verify(digests[i], digests[j])
-
-			if !vf {
-				fmt.Println(vf, i, j, ">", digests[i], digests[j], ":", pf.store, ",", tree.store)
-			}
+			assert.True(t, pf.Verify(digests[i], digests[j]))
 		}
 	}
 

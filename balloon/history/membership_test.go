@@ -28,7 +28,7 @@ func TestProveMembership(t *testing.T) {
 		{[]byte{0x9}, storage.Store{"0|3": []uint8{0x0}, "8|0": []uint8{0x8}, "9|0": []uint8{0x9}}},
 	}
 
-	tree := &Tree{version: 0, hasher: &hashing.XorHasher{}, store: storage.NewStore()}
+	tree := &Tree{version: 0, hasher: &hashing.Xor{}, store: storage.NewStore()}
 
 	for i, c := range testCases {
 		index := uint64(i)
@@ -43,7 +43,7 @@ func TestProveMembership(t *testing.T) {
 }
 
 func TestProveMembershipWithInvalidTargetVersion(t *testing.T) {
-	tree := &Tree{version: 0, hasher: &hashing.XorHasher{}, store: storage.NewStore()}
+	tree := &Tree{version: 0, hasher: &hashing.Xor{}, store: storage.NewStore()}
 	tree.Add("Event1")
 
 	defer func() {
@@ -55,7 +55,7 @@ func TestProveMembershipWithInvalidTargetVersion(t *testing.T) {
 }
 
 func TestProveMembershipNonConsecutive(t *testing.T) {
-	tree := &Tree{version: 0, hasher: &hashing.XorHasher{}, store: storage.NewStore()}
+	tree := &Tree{version: 0, hasher: &hashing.Xor{}, store: storage.NewStore()}
 
 	// add nine events
 	for i := uint64(0); i < 9; i++ {
