@@ -1,4 +1,4 @@
-package hashihg
+package hashing
 
 // XorHasher implements the Hasher interface and computes a xor function.
 // Handy for testing hash tree implementations.

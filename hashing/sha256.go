@@ -1,5 +1,9 @@
 package hashing
 
+import (
+	"crypto/sha256"
+)
+
 // Sha256Hasher implements the Hasher interface and computes the crypto/sha256
 // internal function.
 type Sha256Hasher struct{}
