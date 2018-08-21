@@ -29,14 +29,14 @@ func TestCommitment(t *testing.T) {
 
 	// Note that we are using fake hashing functions and the index
 	// as the value of the event's digest to make predictable hashes
-	tree := &Tree{version: 0, hasher: hashing.NewXor(), store: storage.NewStore()}
+	tree := &Tree{version: 0, hasher: hashing.NewXor(), store: storage.NewMemoryStore()}
 
 	for i, c := range testCases {
 
 		// almost like tree.Add except we provide the digest to allow easier
 		// tests.
 		node := &Node{index: uint64(i), layer: 0, tree: tree}
-		node.tree.store.Set(node.String(), c.eventDigest)
+		node.tree.store.Set(node.Id(), c.eventDigest)
 
 		commitment := node.Commitment()
 		node.tree.version += 1

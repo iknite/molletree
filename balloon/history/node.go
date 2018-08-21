@@ -30,6 +30,10 @@ func (n *Node) Left() *Node {
 	}
 }
 
+func (n *Node) Capacity() uint64 {
+	return n.index + 1<<n.layer - 1
+}
+
 func (n *Node) Right() *Node {
 	return &Node{
 		index: n.index + (1 << (n.layer - 1)),

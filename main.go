@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/iknite/molletree/history"
+	"github.com/iknite/molletree/balloon"
 )
 
 func main() {
-	tree := history.NewTree()
-	commitment := tree.Add("Hello world!")
-	fmt.Println(commitment)
+	balloon := balloon.NewBalloon()
+	fmt.Println(balloon.Add("Hello world!"))
 }

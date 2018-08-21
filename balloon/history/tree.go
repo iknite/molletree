@@ -10,14 +10,14 @@ import (
 type Tree struct {
 	version uint64
 	hasher  hashing.Hasher
-	store   storage.Store
+	store   storage.Storer
 }
 
 func NewTree() *Tree {
 	return &Tree{
 		version: 0,
 		hasher:  hashing.NewSha256(),
-		store:   storage.NewStore(),
+		store:   storage.NewMemoryStore(),
 	}
 }
 

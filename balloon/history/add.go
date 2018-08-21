@@ -1,19 +1,14 @@
 package history
 
-import (
-	"github.com/iknite/molletree/encoding/encstring"
-)
-
-func (t *Tree) Add(event string) (commitment []byte, digest []byte) {
+func (t *Tree) Add(message []byte) (commitment []byte, digest []byte) {
 	// Add a leaf node
 	node := &Node{index: t.version, layer: 0, tree: t}
+	t.version += 1
 
-	digest = t.hasher.Cipher(node.Id(), (encstring.ToBytes(event)))
-	t.store.Set(node.String(), digest)
+	digest = t.hasher.Cipher(node.Id(), message)
+	t.store.Set(node.Id(), digest)
 
 	commitment = node.Commitment()
-
-	t.version += 1
 
 	return
 }
@@ -22,36 +17,26 @@ func (n *Node) Commitment() []byte {
 	return n.Root(n.index).Hash(n.index)
 }
 
-func (n *Node) Hash(version uint64) []byte {
-	hash, _ := n.hash(version)
-	return hash
-}
-
-func (n *Node) hash(version uint64) (hash []byte, tainted bool) {
+func (n *Node) Hash(version uint64) (hash []byte) {
 
 	if n.index > version {
 		return // if you're trying to get the future, return nil
 	}
 
-	key := n.String()
+	id := n.Id()
 
-	hash, ok := n.tree.store.Get(key)
-	if ok {
-		return // you're getting the past so it's cached
+	if n.layer == 0 || n.Capacity() < version {
+		var ok bool
+		hash, ok = n.tree.store.Get(id)
+		if ok {
+			return // you're getting the past so it's cached
+		}
 	}
 
-	rightHash, rightTainted := n.Right().hash(version)
+	hash = n.tree.hasher.Cipher(id, n.Left().Hash(version), n.Right().Hash(version))
 
-	hash = n.tree.hasher.Cipher(
-		n.Id(),
-		n.Left().Hash(version),
-		rightHash,
-	)
-
-	if rightHash != nil && !rightTainted {
-		n.tree.store.Set(key, hash) // is storable when the childrens are complete
-	} else {
-		tainted = true // If bottom nodes are empty warn the upper about it
+	if n.Capacity() == version {
+		n.tree.store.Set(id, hash) // is storable when the childrens are complete
 	}
 
 	return

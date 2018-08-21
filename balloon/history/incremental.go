@@ -8,7 +8,7 @@ import (
 
 type IncrementalProof struct {
 	start, end uint64
-	store      storage.Store
+	store      storage.Storer
 	hasher     hashing.Hasher
 }
 
@@ -37,17 +37,17 @@ func (p *IncrementalProof) Verify(startHash, endHash []byte) bool {
 		encbytes.ToString(endCommitment) == encbytes.ToString(endHash)
 }
 
-func (n *Node) IncrementalAuditPath(n2 *Node) storage.Store {
-	store := storage.NewStore()
+func (n *Node) IncrementalAuditPath(n2 *Node) storage.Storer {
+	store := storage.NewMemoryStore()
 	collectIncrementalAuditPath(store, n.Root(n2.index), n.index, n2.index)
 
 	return store
 
 }
 
-func collectIncrementalAuditPath(store storage.Store, node *Node, t1, t2 uint64) {
+func collectIncrementalAuditPath(store storage.Storer, node *Node, t1, t2 uint64) {
 	if node.layer < 1 {
-		store.Set(node.String(), node.Hash(t2))
+		store.Set(node.Id(), node.Hash(t2))
 		return
 	}
 
@@ -65,12 +65,12 @@ func collectIncrementalAuditPath(store storage.Store, node *Node, t1, t2 uint64)
 	left := node.Left()
 
 	if right.index == targetN1.index {
-		store.Set(left.String(), left.Hash(t2))
+		store.Set(left.Id(), left.Hash(t2))
 		collectIncrementalAuditPath(store, right, t1, t2)
 
 	} else {
 		if right.index <= t2 {
-			store.Set(right.String(), right.Hash(t2))
+			store.Set(right.Id(), right.Hash(t2))
 		}
 		collectIncrementalAuditPath(store, left, t1, t2)
 	}

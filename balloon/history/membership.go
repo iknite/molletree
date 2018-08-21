@@ -9,7 +9,7 @@ import (
 type MembershipProof struct {
 	commitment     []byte
 	index, version uint64
-	store          storage.Store
+	store          storage.Storer
 	hasher         hashing.Hasher
 }
 
@@ -42,24 +42,24 @@ func (m *MembershipProof) Verify() bool {
 	return encbytes.ToString(commitment) == encbytes.ToString(m.commitment)
 }
 
-func (n *Node) AuditPath(version uint64) storage.Store {
+func (n *Node) AuditPath(version uint64) storage.Storer {
 
 	if n.index > version {
 		panic("version is below index")
 	}
 
-	store := storage.NewStore()
+	store := storage.NewMemoryStore()
 	collectAuditPath(store, n.Root(version), n.index, version)
 
 	return store
 
 }
 
-func collectAuditPath(store storage.Store, node *Node, target, version uint64) {
+func collectAuditPath(store storage.Storer, node *Node, target, version uint64) {
 
 	if node.layer < 1 {
 		// Store the leaf node and end traversing
-		store.Set(node.String(), node.Hash(version))
+		store.Set(node.Id(), node.Hash(version))
 		return
 	}
 
@@ -67,12 +67,12 @@ func collectAuditPath(store storage.Store, node *Node, target, version uint64) {
 	left := node.Left()
 
 	if right.index <= target {
-		store.Set(left.String(), left.Hash(version))
+		store.Set(left.Id(), left.Hash(version))
 		collectAuditPath(store, right, target, version)
 
 	} else {
 		if right.index <= version {
-			store.Set(right.String(), right.Hash(version))
+			store.Set(right.Id(), right.Hash(version))
 		}
 		collectAuditPath(store, left, target, version)
 	}

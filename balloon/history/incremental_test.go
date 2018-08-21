@@ -13,32 +13,32 @@ import (
 func TestVerifyIncremental(t *testing.T) {
 
 	testCases := []struct {
-		store                  storage.Store
+		store                  storage.Storer
 		start, end             uint64
 		startDigest, endDigest []byte
 	}{
 		{
-			storage.Store{"0|1": []uint8{0x1}, "2|0": []uint8{0x2}, "3|0": []uint8{0x3}, "4|1": []uint8{0x1}, "6|0": []uint8{0x6}},
+			storage.MemoryStore{"0|1": []uint8{0x1}, "2|0": []uint8{0x2}, "3|0": []uint8{0x3}, "4|1": []uint8{0x1}, "6|0": []uint8{0x6}},
 			2, 6, []byte{0x3}, []byte{0x7},
 		},
 		{
-			storage.Store{"0|1": []uint8{0x1}, "2|0": []uint8{0x2}, "3|0": []uint8{0x3}, "4|1": []uint8{0x1}, "6|0": []uint8{0x6}, "7|0": []uint8{0x7}},
+			storage.MemoryStore{"0|1": []uint8{0x1}, "2|0": []uint8{0x2}, "3|0": []uint8{0x3}, "4|1": []uint8{0x1}, "6|0": []uint8{0x6}, "7|0": []uint8{0x7}},
 			2, 7, []byte{0x3}, []byte{0x0},
 		},
 		{
-			storage.Store{"0|2": []uint8{0x0}, "4|0": []uint8{0x4}, "5|0": []uint8{0x5}, "6|0": []uint8{0x6}},
+			storage.MemoryStore{"0|2": []uint8{0x0}, "4|0": []uint8{0x4}, "5|0": []uint8{0x5}, "6|0": []uint8{0x6}},
 			4, 6, []byte{0x4}, []byte{0x7},
 		},
 		{
-			storage.Store{"0|2": []uint8{0x0}, "4|0": []uint8{0x4}, "5|0": []uint8{0x5}, "6|0": []uint8{0x6}, "7|0": []uint8{0x7}},
+			storage.MemoryStore{"0|2": []uint8{0x0}, "4|0": []uint8{0x4}, "5|0": []uint8{0x5}, "6|0": []uint8{0x6}, "7|0": []uint8{0x7}},
 			4, 7, []byte{0x4}, []byte{0x0},
 		},
 		{
-			storage.Store{"2|0": []uint8{0x2}, "3|0": []uint8{0x3}, "4|0": []uint8{0x4}, "0|1": []uint8{0x1}},
+			storage.MemoryStore{"2|0": []uint8{0x2}, "3|0": []uint8{0x3}, "4|0": []uint8{0x4}, "0|1": []uint8{0x1}},
 			2, 4, []byte{0x3}, []byte{0x4},
 		},
 		{
-			storage.Store{"0|2": []uint8{0x0}, "4|1": []uint8{0x1}, "6|0": []uint8{0x6}, "7|0": []uint8{0x7}},
+			storage.MemoryStore{"0|2": []uint8{0x0}, "4|1": []uint8{0x1}, "6|0": []uint8{0x6}, "7|0": []uint8{0x7}},
 			6, 7, []byte{0x7}, []byte{0x0},
 		},
 	}
@@ -59,12 +59,12 @@ func max(x, y int) uint64 {
 }
 
 func TestProveAndVerifyConsecutivelyN(t *testing.T) {
-	tree := &Tree{version: 0, hasher: hashing.NewXor(), store: storage.NewStore()}
+	tree := &Tree{version: 0, hasher: hashing.NewXor(), store: storage.NewMemoryStore()}
 	digests := make(map[uint64][]byte)
 
 	for i := uint64(0); i < 10; i++ {
 		node := &Node{index: i, layer: 0, tree: tree}
-		node.tree.store.Set(node.String(), encstring.ToBytes(string(i)))
+		node.tree.store.Set(node.Id(), encstring.ToBytes(string(i)))
 		node.Commitment()
 		tree.version += 1
 
@@ -80,7 +80,7 @@ func TestProveAndVerifyConsecutivelyN(t *testing.T) {
 }
 
 func TestProveAndVerifyNonConsecutively(t *testing.T) {
-	tree := &Tree{version: 0, hasher: hashing.NewXor(), store: storage.NewStore()}
+	tree := &Tree{version: 0, hasher: hashing.NewXor(), store: storage.NewMemoryStore()}
 
 	const size uint64 = 10
 	digests := make(map[uint64][]byte)
@@ -88,7 +88,7 @@ func TestProveAndVerifyNonConsecutively(t *testing.T) {
 	for i := uint64(0); i < 10; i++ {
 		index := uint64(i)
 		node := &Node{index: index, layer: 0, tree: tree}
-		node.tree.store.Set(node.String(), encstring.ToBytes(string(i)))
+		node.tree.store.Set(node.Id(), encstring.ToBytes(string(i)))
 		digests[i] = node.Commitment()
 		tree.version += 1
 	}
