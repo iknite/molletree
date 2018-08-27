@@ -9,10 +9,10 @@ func ToString(b []byte) string {
 	return fmt.Sprintf("%X", b)
 }
 
-func ToPrettyId(id []byte) string {
+func ToStringId(id []byte) string {
 	return fmt.Sprintf(
 		"%d|%d",
 		binary.BigEndian.Uint64(id[:8]),
-		binary.BigEndian.Uint64(id[8:]),
+		binary.BigEndian.Uint64(id[len(id)-8:]),
 	)
 }

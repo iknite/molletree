@@ -8,6 +8,8 @@ import (
 
 	b "github.com/dgraph-io/badger"
 	bo "github.com/dgraph-io/badger/options"
+	"github.com/iknite/molletree/bitmask"
+	"github.com/iknite/molletree/encoding/encbytes"
 )
 
 type BadgerStore struct {
@@ -48,27 +50,42 @@ func (s BadgerStore) Get(id []byte) ([]byte, bool) {
 
 }
 
-func (s BadgerStore) GetRange(start, end []byte) [][]byte {
-	var leaves [][]byte
+func (s BadgerStore) GetRange(start, end []byte) MemoryStore {
+	var leaves MemoryStore
 
-	s.db.View(func(txn *b.Txn) error {
+	s.db.View(func(txn *b.Txn) (err error) {
 		opts := b.DefaultIteratorOptions
 		opts.PrefetchValues = false
 		it := txn.NewIterator(opts)
 		defer it.Close()
 		for it.Seek(start); it.Valid(); it.Next() {
 			item := it.Item()
-			var k []byte
+			var k, v []byte
+
 			k = item.KeyCopy(k)
 			if bytes.Compare(k, end) > 0 {
 				break
 			}
-			leaves = append(leaves, k)
+			v, err = item.ValueCopy(v)
+			leaves[encbytes.ToStringId(k)] = v
 		}
 		return nil
 	})
 
 	return leaves
+}
+
+func (s BadgerStore) SetAndPrefetch(id, data []byte, level uint64) (leaves MemoryStore) {
+	s.Set(id, data)
+
+	start := bitmask.ClearLeft(data, level)
+	start = append(start, byte(0x00))
+
+	end := bitmask.SetLeft(data, level)
+	end = append(end, byte(0x00))
+
+	leaves = s.GetRange(start, end)
+	return
 }
 
 func (s BadgerStore) Delete(id []byte) error {
