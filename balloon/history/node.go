@@ -17,9 +17,7 @@ func (n *Node) String() string {
 }
 
 func (n *Node) Id() []byte {
-	var b []byte
-	b = append(b, encuint64.ToBytes(n.index)...)
-	return append(b, encuint64.ToBytes(n.layer)...)
+	return append(encuint64.ToBytes(n.index), encuint64.ToBytes(n.layer)...)
 }
 
 func (n *Node) Left() *Node {

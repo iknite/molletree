@@ -2,36 +2,41 @@ package bitmask
 
 import "math/big"
 
-func genMask(size uint) []byte {
-	// `m := 1<<size - 1` but for any size of number
+func genMask(size uint) *big.Int {
+
+	// `m := 1<<size - 1` but for any number
 	m := new(big.Int).Add(new(big.Int).Lsh(big.NewInt(1), size), big.NewInt(-1))
-	return m.Bytes()
+
+	// it will return the smallest slice of bytes that represents the mask.
+	return m
+
 }
 
-func filter(digest []byte, size uint64, clear bool) []byte {
-	var b []byte
-	b = append(b, digest...)
+func filter(digest []byte, size uint64, clear bool) (b []byte) {
 
 	mask := genMask(uint(size))
 
-	l, m := len(digest), len(mask)
+	d := new(big.Int).SetBytes(digest)
 
 	if clear {
-		for i := m - 1; i >= 0; i-- {
-			b[l-m+i] &^= mask[i]
-		}
+		// `b = d &^ mask` set mask part to zeros.
+		b = new(big.Int).AndNot(d, mask).Bytes()
+
 	} else {
-		for i := m - 1; i >= 0; i-- {
-			b[l-m+i] |= mask[i]
-		}
+		// `b = d | mask` set mask part to ones.
+		b = new(big.Int).Or(d, mask).Bytes()
 	}
-	return b
+
+	return
+
 }
 
+// SetLeft will return a new byte slice will the latest (size) bits as ones.
 func SetLeft(digest []byte, size uint64) []byte {
 	return filter(digest, size, false)
 }
 
+// ClearLeft will return a new byte slice will the latest (size) bits as zeros.
 func ClearLeft(digest []byte, size uint64) []byte {
 	return filter(digest, size, true)
 }

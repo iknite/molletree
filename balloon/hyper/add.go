@@ -13,7 +13,9 @@ func (t *Tree) Add(digest []byte) []byte {
 
 	s.Merge(p)
 
-	return n.Root().Hash(digest)
+	hash := n.Root().Hash(digest)
+	return hash
+
 }
 
 func (n *Node) Get() (hash []byte) {

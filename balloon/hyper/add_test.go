@@ -47,11 +47,12 @@ func TestAdd(t *testing.T) {
 	s, closeF := openBadgerStorage()
 	defer closeF()
 
+	h := hashing.NewXor()
 	tree := &Tree{
-		hasher:     hashing.NewXor(),
+		hasher:     h,
 		store:      s.(storage.Cacher),
 		cache:      storage.NewMemoryStore(),
-		cacheLevel: 0,
+		cacheLevel: 1,
 	}
 
 	for i, c := range testCases {

@@ -16,13 +16,11 @@ type Node struct {
 
 // Stringer implementation
 func (n *Node) String() string {
-	return fmt.Sprintf("%08b|%d", n.base, n.layer)
+	return fmt.Sprintf("%d|%d", n.base, n.layer)
 }
 
 func (n *Node) Id() []byte {
-	var b []byte
-	b = append(b, n.base...)
-	return append(b, encuint64.ToBytes(n.layer)...)
+	return append(n.base, encuint64.ToBytes(n.layer)...)
 }
 
 func (n *Node) Height() uint64 {

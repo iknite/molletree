@@ -9,7 +9,7 @@ import (
 	b "github.com/dgraph-io/badger"
 	bo "github.com/dgraph-io/badger/options"
 	"github.com/iknite/molletree/bitmask"
-	"github.com/iknite/molletree/encoding/encbytes"
+	"github.com/iknite/molletree/encoding/encuint64"
 )
 
 type BadgerStore struct {
@@ -51,7 +51,7 @@ func (s BadgerStore) Get(id []byte) ([]byte, bool) {
 }
 
 func (s BadgerStore) GetRange(start, end []byte) MemoryStore {
-	var leaves MemoryStore
+	leaves := NewMemoryStore()
 
 	s.db.View(func(txn *b.Txn) (err error) {
 		opts := b.DefaultIteratorOptions
@@ -67,7 +67,7 @@ func (s BadgerStore) GetRange(start, end []byte) MemoryStore {
 				break
 			}
 			v, err = item.ValueCopy(v)
-			leaves[encbytes.ToStringId(k)] = v
+			leaves.Set(k, v)
 		}
 		return nil
 	})
@@ -78,11 +78,8 @@ func (s BadgerStore) GetRange(start, end []byte) MemoryStore {
 func (s BadgerStore) SetAndPrefetch(id, data []byte, level uint64) (leaves MemoryStore) {
 	s.Set(id, data)
 
-	start := bitmask.ClearLeft(data, level)
-	start = append(start, byte(0x00))
-
-	end := bitmask.SetLeft(data, level)
-	end = append(end, byte(0x00))
+	start := append(bitmask.ClearLeft(data, level), encuint64.ToBytes(uint64(0))...)
+	end := append(bitmask.SetLeft(data, level), encuint64.ToBytes(uint64(0))...)
 
 	leaves = s.GetRange(start, end)
 	return
@@ -103,7 +100,7 @@ func NewBadgerStore(path string) *BadgerStore {
 	opts.TableLoadingMode = bo.MemoryMap
 	opts.Dir = path
 	opts.ValueDir = path
-	opts.SyncWrites = false
+	opts.SyncWrites = true
 	db, err := b.Open(opts)
 	if err != nil {
 		log.Fatal(err)
